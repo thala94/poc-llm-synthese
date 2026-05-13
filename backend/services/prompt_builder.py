@@ -122,7 +122,7 @@ def build_prompt(text, mode="resume_classique"):
         - structuré
 
         Document :
-        {text[:4000]}
+        {text[:2000]}
         """
         #{text}
     # =========================

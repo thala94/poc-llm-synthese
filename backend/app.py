@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify
+import os
+from flask import Flask, request, jsonify, send_file
 import requests
 from services.pdf_reader import read_pdf
 from services.prompt_builder import build_prompt
-
+from services.pdf_exporter import generate_pdf
 
 app = Flask(__name__)
 
@@ -112,7 +113,24 @@ def resume() :
                     system_prompt=prompt["system"],
                     user_prompt=prompt["user"],
                     model=model
-)
+    )
+
+    download = data.get("download", False)
+
+    generate_text = result["message"]["content"]
+
+    if download:
+        pdf_path = generate_pdf(generate_text)
+        print(pdf_path)
+        print(os.path.exists(pdf_path))
+        print("PDF PATH =", pdf_path)
+        print("EXISTS =", os.path.exists(pdf_path))
+        return send_file(
+            pdf_path,
+            as_attachment=True,
+            download_name="resume.pdf",
+            mimetype="application/pdf"
+        )
 
     return jsonify(result)
 
