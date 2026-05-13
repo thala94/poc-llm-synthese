@@ -8,12 +8,21 @@ app = Flask(__name__)
 
 
 # Méthode commune pour appeler le modèle LLM local avec Ollama
-def ask_llm(prompt, model="mistral"):
+def ask_llm(system_prompt, user_prompt ,model="mistral"):
     response = requests.post(
-        "http://localhost:11434/api/generate",
+        "http://localhost:11434/api/chat",
         json={
             "model": model,
-            "prompt": prompt,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ],
             "stream": False
         }
     )
@@ -66,7 +75,10 @@ def ask():
     if error:
         return jsonify(error), 400
 
-    result = ask_llm(prompt)
+    result = ask_llm(
+    system_prompt=prompt["system"],
+    user_prompt=prompt["user"]
+)
     return result
 
 
@@ -88,8 +100,6 @@ def resume() :
     if not text:
         return jsonify({"error": "Aucun texte trouvé dans le PDF"}), 400
     
-    #test pour voir le texte extrait
-    
     prompt, error = build_prompt(
         text = text, 
         mode= mode
@@ -98,14 +108,13 @@ def resume() :
     if error:
         return jsonify(error), 400
 
-    print("MODE =", mode)
-    print("MODEL =", model)
-    print("PROMPT =", prompt[:1000])
-
-    result = ask_llm(prompt, model=model)
+    result = ask_llm(
+                    system_prompt=prompt["system"],
+                    user_prompt=prompt["user"],
+                    model=model
+)
 
     return jsonify(result)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
