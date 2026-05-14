@@ -4,6 +4,8 @@ import requests
 from services.pdf_reader import read_pdf
 from services.prompt_builder import build_prompt
 from services.pdf_exporter import generate_pdf
+from services.pptx_reader import read_pptx
+from services.word_reader import read_word
 
 app = Flask(__name__)
 
@@ -45,6 +47,22 @@ def get_models():
 
     return models
 
+
+def read_document(file_path):
+    extension = os.path.splitext(file_path)[1].lower()
+
+    if extension == ".pdf":
+        return read_pdf(file_path)
+
+    elif extension == ".pptx":
+        return read_pptx(file_path)
+    
+    elif extension ==".docx":
+        return read_word(file_path)
+
+    else:
+        raise ValueError("Format non supporté. Utilise PDF ou PPTX.")
+        
 # Définition des routes 
 @app.route("/")
 def home():
@@ -88,51 +106,55 @@ def ask():
 def resume() :
     #Récupérer les données envoyer par le client, chemin du pdf,  model
     data = request.get_json()
-    #Cemn du fichier pdf
+    #Chemin du fichier pdf
     file_path = data.get("file_path", "")
     mode = data.get("mode", "resume_classique")
-    model = data.get("model", "mistral")
-
-    if not file_path : 
-        return jsonify(file_path)
-     #Appler la methode pour construire le prompt 
-    text = read_pdf(file_path)
-
-    if not text:
-        return jsonify({"error": "Aucun texte trouvé dans le PDF"}), 400
-    
-    prompt, error = build_prompt(
-        text = text, 
-        mode= mode
-    )
-
-    if error:
-        return jsonify(error), 400
-
-    result = ask_llm(
-                    system_prompt=prompt["system"],
-                    user_prompt=prompt["user"],
-                    model=model
-    )
-
+    model = data.get("model", "mistral")    
     download = data.get("download", False)
 
-    generate_text = result["message"]["content"]
+    if not file_path : 
+        return jsonify(file_path),400
+     #Appler la methode pour construire le prompt 
+    try:
+        text = read_document(file_path)
 
-    if download:
-        pdf_path = generate_pdf(generate_text)
-        print(pdf_path)
-        print(os.path.exists(pdf_path))
-        print("PDF PATH =", pdf_path)
-        print("EXISTS =", os.path.exists(pdf_path))
-        return send_file(
-            pdf_path,
-            as_attachment=True,
-            download_name="resume.pdf",
-            mimetype="application/pdf"
+        if not text:
+            return jsonify({"error": "Aucun texte trouvé dans le PDF"}), 400
+        
+        prompt, error = build_prompt(
+            text = text, 
+            mode= mode
         )
 
-    return jsonify(result)
+        if error:
+            return jsonify(error), 400
+
+        result = ask_llm(
+                        system_prompt=prompt["system"],
+                        user_prompt=prompt["user"],
+                        model=model
+        )
+
+        generate_text = result["message"]["content"]
+
+        if download:
+            pdf_path = generate_pdf(generate_text)
+            print(pdf_path)
+            print(os.path.exists(pdf_path))
+            print("PDF PATH =", pdf_path)
+            print("EXISTS =", os.path.exists(pdf_path))
+            return send_file(
+                pdf_path,
+                as_attachment=True,
+                download_name="resume.pdf",
+                mimetype="application/pdf"
+            )
+
+        return jsonify({
+            "result": generate_text
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
