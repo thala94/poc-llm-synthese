@@ -91,7 +91,7 @@ def resume() :
     data = request.get_json()    
     file_paths = data.get("file_paths", data.get("file_path", "")) #Chemin du fichier ou des fichiers si plusieurs
     mode = data.get("mode", "resume_classique") #Type de résumé
-    model = data.get("model", "mistral")    # Modèle LLM utilisé
+    model = data.get("model", "Phi3:latest")    # Modèle LLM utilisé
     download = data.get("download", False) #Télécharger le résultat en PDF ou pas
 
     if not file_paths : 
