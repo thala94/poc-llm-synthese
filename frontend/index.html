@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Synthèse IA</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Synthèse IA</h1>
+    <p>Assistant de résumé documentaire avec LLM local</p>
+
+    <div class="card">
+        <h2>Documents à résumer</h2>
+
+        <label>Chemins des fichiers</label>
+        <textarea id="filePaths" rows="5">data/test_01.pdf</textarea>
+
+        <small>
+            Mets un fichier par ligne. Exemple : data/test_01.pdf
+        </small>
+    </div>
+
+    <div class="card">
+        <h2>Options</h2>
+
+        <label>Type de résumé</label>
+        <select id="mode">
+            <option value="resume_classique">Résumé classique</option>
+            <option value="resume_executif">Résumé exécutif</option>
+            <option value="analyse_ministerielle">Analyse ministérielle</option>
+            <option value="fiche_synthese">Fiche synthèse</option>
+        </select>
+
+        <label>Modèle</label>
+        <select id="model">
+            <option value="mistral:latest">mistral</option>            
+            <option value="Phi3:latest">Phi3</option>
+            <option value="llama3:latest">Llama3</option>
+            <option value="tinyllama:latest">Tinyllama</option>
+            <option value="1- gpt-oss:20b">GPT à venir pas de GPU</option>
+        </select>
+
+        <label>
+            <input type="checkbox" id="download">
+            Télécharger le résultat en PDF
+        </label>
+    </div>
+
+    <button id="generateBtn">Générer le résumé</button>
+    
+    <div class="card">
+        <h2>Résultat</h2>
+        <div id="logs">
+            <p>Les étapes de traitement :</p>
+        </div>
+        <pre id="result">Le résumé apparaîtra ici...</pre>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
